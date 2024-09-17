@@ -1,0 +1,20 @@
+{
+  "name": "@hexlet/code",
+  "version": "1.0.0",
+  "bin": {
+    "fullstack-javascript-project-4": "bin/page-loader.js"
+  },
+  "description": "Page loader utility",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "type": "module",
+  "author": "Ivan Sakharov",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.7.7",
+    "commander": "^12.1.0",
+    "nock": "^13.5.5"
+  }
+}
