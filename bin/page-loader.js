@@ -15,8 +15,8 @@ program
     'output dir (default: "/home/user/current-dir")'
   )
   .helpOption("-h, --help", "display help for command")
-  .action((url,option) => {
-    saveHTML(url, option.output);
+  .action(async (url,option) => {
+    await saveHTML(url, option.output)
   });
 
 program.parse();
