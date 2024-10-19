@@ -2,6 +2,7 @@ import axios from "axios";
 import fs from "fs";
 import * as cheerio from "cheerio";
 import * as pathlib from "path";
+import Listr from "listr";
 
 const IMGname = /\/\w+\.\w{0,4}$/;
 const structure = { img: [], link: [], script: [] };
@@ -28,14 +29,13 @@ const createResources = async (html, resPath, url) => {
   $("link").each(function () {
     const oldValue = $(this).attr("href");
     structure.link.push(oldValue);
-    const newhref = resPath + filename(url + oldValue);
+    const newhref = resPath + filename(url) + oldValue;
     $(this).attr("href", newhref);
   });
 
   $("script").each(function () {
     const oldValue = $(this).attr("src");
     const newsrc = resPath + filename(url + oldValue);
-    console.log(oldValue);
     structure.script.push({ src: oldValue, text: $(this).text() });
     $(this).attr("src", newsrc);
   });
@@ -68,17 +68,13 @@ const gethtml = async (url) => {
   return result;
 };
 
-const saveJS = async (jscode, path, url) => {
-  fs.writeFile(
-    `${path}/${url.replace(/\//g, "-").replace(/\./g, "-")}.js`,
-    jscode,
-    (err) => {
-      if (err) {
-        console.log(err);
-      }
-      console.log("HTML file saved");
+const saveJS = async (jscode, path, jsname) => {
+  fs.writeFile(`${path}/${jsname}.js`, jscode, (err) => {
+    if (err) {
+      console.log(err);
     }
-  );
+    console.log("JS file saved");
+  });
 };
 
 const saveHTML = async (html, path, url) => {
@@ -96,15 +92,15 @@ const mainFilePath = (url, path) => {
 
 export default (url, path = "") => {
   const htmlSavePath = path || pathlib.resolve(process.cwd());
-  const fileSystPath = mainFilePath(url, htmlSavePath);
+  const fileSystPathName = mainFilePath(url, htmlSavePath);
   gethtml(url)
     .then((res) => {
-      createResources(res, fileSystPath, url).then((res) => {
+      createResources(res, fileSystPathName, url).then((res) => {
         saveHTML(res, htmlSavePath, url);
       });
     })
     .then(() => {
-      fs.mkdir(fileSystPath, { recursive: true }, (err) => {
+      fs.mkdir(fileSystPathName, { recursive: true }, (err) => {
         if (err) throw err;
       });
     })
@@ -112,18 +108,18 @@ export default (url, path = "") => {
       structure.img.map((img) => {
         const resURL = new URL(img, url);
         const resName = IMGname.exec(img);
-        downloadImage(resURL, fileSystPath, `${resName}`);
+        downloadImage(resURL, fileSystPathName, `${resName}`);
       });
 
       structure.link.map((link) => {
         const resURL = new URL(link, url);
         gethtml(resURL).then((res) => {
-          saveHTML(res, fileSystPath, resURL);
+          saveHTML(res, fileSystPathName, resURL);
         });
       });
 
       structure.script.map((script) => {
-        saveJS(script.text, fileSystPath, script.src);
+        saveJS(script.text, fileSystPathName, script.src);
       });
     });
 };
